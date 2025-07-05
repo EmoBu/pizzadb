@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pizza Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Reset & Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f7fa;
+            color: #2c3e50;
+        }
+
+        /* Navigation */
+        .navbar {
+            background-color: #2c3e50;
+            padding: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            color: #ecf0f1;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .nav-link:hover {
+            background-color: #34495e;
+        }
+
+        .nav-link.active {
+            background-color: #3498db;
+        }
+
+        /* Filter Section */
+        .filter-section {
+            background-color: white;
+            padding: 1rem 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .filter-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .filter-select {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-header h2 {
+            font-size: 2rem;
+            color: #2c3e50;
+        }
+
+        .page-number {
+            background-color: #ecf0f1;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        /* KPI Cards */
+        .kpi-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .kpi-card {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: transform 0.3s;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .kpi-icon {
+            font-size: 2.5rem;
+            background-color: #f0f2f5;
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .kpi-content {
+            flex: 1;
+        }
+
+        .kpi-label {
+            color: #7f8c8d;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-change {
+            font-size: 0.875rem;
+            color: #7f8c8d;
+        }
+
+        .kpi-change.positive {
+            color: #27ae60;
+        }
+
+        .kpi-change.negative {
+            color: #e74c3c;
+        }
+
+        /* Small KPI Cards for Products */
+        .kpi-container-small {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .kpi-card-small {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .kpi-value-large {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-label-small {
+            color: #7f8c8d;
+            font-size: 0.875rem;
+        }
+
+        /* Revenue KPI Cards */
+        .kpi-card-revenue {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .kpi-card-revenue.small {
+            max-width: 300px;
+        }
+
+        .kpi-value-xl {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-value-xl.positive {
+            color: #27ae60;
+        }
+
+        .kpi-sublabel {
+            color: #95a5a6;
+            font-size: 0.875rem;
+        }
+
+        /* Charts */
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .chart-card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .chart-card h3 {
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+
+        .chart-card canvas {
+            max-height: 300px;
+        }
+
+        /* Table Styles */
+        .table-container {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+
+        .product-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .product-table th {
+            background-color: #34495e;
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 500;
+        }
+
+        .product-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .product-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Year Selector */
+        .year-selector {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .year-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .year-btn:hover {
+            background-color: #ecf0f1;
+        }
+
+        .year-btn.active {
+            background-color: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        /* Weekday Filter */
+        .weekday-filter {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+        }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            color: #7f8c8d;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-menu {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .kpi-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .product-table {
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="nav-logo">🍕 Pizza Dashboard</h1>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" data-page="orders">Bestellungen & Peak Times</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="products">Produktanalyse</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="revenue">Umsatzanalyse</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <div class="filter-container">
+            <select id="storeFilter" class="filter-select">
+                <option value="">Alle Stores</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Bestellungen & Peak Times Page -->
+        <div id="ordersPage" class="page active">
+            <div class="page-header">
+                <h2>Bestellungen & Peak Times</h2>
+                <span class="page-number">04/10</span>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="kpi-container">
+                <div class="kpi-card">
+                    <div class="kpi-icon">🍕</div>
+                    <div class="kpi-content">
+                        <p class="kpi-label">Gesamtanzahl verkaufte Pizzen</p>
+                        <h3 class="kpi-value" id="totalPizzas">30.000</h3>
+                        <p class="kpi-change positive">+5,6% zum Vormonat</p>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon">📊</div>
+                    <div class="kpi-content">
+                        <p class="kpi-label">Gesamtanzahl Bestellungen</p>
+                        <h3 class="kpi-value" id="totalOrders">23.404</h3>
+                        <p class="kpi-change positive">+5,6% zum Vormonat</p>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon">💰</div>
+                    <div class="kpi-content">
+                        <p class="kpi-label">Durchschnittlicher Bestellwert</p>
+                        <h3 class="kpi-value" id="avgOrderValue">17,47€</h3>
+                        <p class="kpi-change positive">+5,6% zum Vormonat</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts-container">
+                <div class="chart-card">
+                    <h3>Anzahl Bestellungen</h3>
+                    <div class="weekday-filter">
+                        <select id="weekdayFilter" class="filter-select">
+                            <option value="">Alle Wochentage</option>
+                            <option value="Montag">Montag</option>
+                            <option value="Dienstag">Dienstag</option>
+                            <option value="Mittwoch">Mittwoch</option>
+                            <option value="Donnerstag">Donnerstag</option>
+                            <option value="Freitag">Freitag</option>
+                            <option value="Samstag">Samstag</option>
+                            <option value="Sonntag">Sonntag</option>
+                        </select>
+                    </div>
+                    <canvas id="ordersByWeekdayChart"></canvas>
+                </div>
+            </div>
+
+            <div class="charts-container">
+                <div class="chart-card full-width">
+                    <h3>Bestellungen nach Uhrzeit</h3>
+                    <canvas id="ordersByHourChart"></canvas>
+                </div>
+            </div>
+
+            <div class="charts-container">
+                <div class="chart-card full-width">
+                    <h3>Bestellungen pro Monat über Jahre</h3>
+                    <div class="year-selector">
+                        <button class="year-btn" data-year="2020">2020</button>
+                        <button class="year-btn" data-year="2021">2021</button>
+                        <button class="year-btn active" data-year="2022">2022</button>
+                    </div>
+                    <canvas id="monthlyOrdersChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Produktanalyse Page -->
+        <div id="productsPage" class="page">
+            <div class="page-header">
+                <h2>Produktinformationen</h2>
+                <span class="page-number">07/10</span>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="kpi-container-small">
+                <div class="kpi-card-small">
+                    <h3 class="kpi-value-large">9</h3>
+                    <p class="kpi-label-small">Anzahl an Produkten</p>
+                </div>
+                <div class="kpi-card-small">
+                    <h3 class="kpi-value-large">4</h3>
+                    <p class="kpi-label-small">Größen</p>
+                </div>
+                <div class="kpi-card-small">
+                    <h3 class="kpi-value-large">3</h3>
+                    <p class="kpi-label-small">Kategorien</p>
+                </div>
+                <div class="kpi-card-small">
+                    <h3 class="kpi-value-large">135,4</h3>
+                    <p class="kpi-label-small">Durchschnitts Verkäufe pro Pizza</p>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts-container">
+                <div class="chart-card">
+                    <h3>Sales per Pizza</h3>
+                    <canvas id="salesByPizzaChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Größen</h3>
+                    <canvas id="sizeDistributionChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Product Details Table -->
+            <div class="table-container">
+                <h3>Pizza Details</h3>
+                <table class="product-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Kategorie</th>
+                            <th>Zutaten</th>
+                            <th>Launch</th>
+                            <th>Tage seit Launch</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productTableBody">
+                        <!-- Dynamically populated -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="chart-card full-width">
+                <h3>Pizzas nach Kategorie</h3>
+                <canvas id="categoryDistributionChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Umsatzanalyse Page -->
+        <div id="revenuePage" class="page">
+            <div class="page-header">
+                <h2>Umsatzanalyse</h2>
+                <span class="page-number">08/10</span>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="kpi-container">
+                <div class="kpi-card-revenue">
+                    <div class="kpi-icon">💰</div>
+                    <div class="kpi-content">
+                        <p class="kpi-label">Gesamtumsatz</p>
+                        <h3 class="kpi-value-xl" id="totalRevenue">749.000,00 €</h3>
+                        <p class="kpi-change positive">+2,6% zum Vormonat</p>
+                    </div>
+                </div>
+                <div class="kpi-card-revenue">
+                    <div class="kpi-icon">📈</div>
+                    <div class="kpi-content">
+                        <p class="kpi-label">UMSATZWACHSTUM</p>
+                        <h3 class="kpi-value-xl positive" id="revenueGrowth">+1,5%</h3>
+                        <p class="kpi-sublabel">zum Vormonat</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts-container">
+                <div class="chart-card">
+                    <h3>Umsatzverteilung nach Wochentag</h3>
+                    <canvas id="revenueByWeekdayChart"></canvas>
+                </div>
+                <div class="kpi-card-revenue small">
+                    <div class="kpi-icon">🍕</div>
+                    <div class="kpi-content">
+                        <p class="kpi-label">Umsatz pro Bestellung</p>
+                        <h3 class="kpi-value" id="revenuePerOrder">17,63 €</h3>
+                        <p class="kpi-change positive">+0,2% zum Vormonat</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts-container">
+                <div class="chart-card full-width">
+                    <h3>Jahresumsatz</h3>
+                    <canvas id="yearlyRevenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </main>
+
+   <script>
+        // API Configuration
+        const API_URL = 'http://localhost:5000/api';
+
+        // Global variables
+        let currentStore = '';
+        let charts = {};
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeNavigation();
+            loadStores();
+            loadOrdersPage();
+        });
+
+        // Navigation
+        function initializeNavigation() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const page = link.dataset.page;
+                    switchPage(page);
+                    
+                    // Update active state
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+                });
+            });
+        }
+
+        function switchPage(page) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            
+            // Show selected page
+            document.getElementById(`${page}Page`).classList.add('active');
+            
+            // Load page data
+            switch(page) {
+                case 'orders':
+                    loadOrdersPage();
+                    break;
+                case 'products':
+                    loadProductsPage();
+                    break;
+                case 'revenue':
+                    loadRevenuePage();
+                    break;
+            }
+        }
+
+        // Load stores for filter
+        async function loadStores() {
+            try {
+                const response = await fetch(`${API_URL}/stores`);
+                const stores = await response.json();
+                
+                const storeFilter = document.getElementById('storeFilter');
+                stores.forEach(store => {
+                    const option = document.createElement('option');
+                    option.value = store.storeID;
+                    option.textContent = store.city;
+                    storeFilter.appendChild(option);
+                });
+                
+                // Add event listener
+                storeFilter.addEventListener('change', (e) => {
+                    currentStore = e.target.value;
+                    // Reload current page
+                    const activePage = document.querySelector('.nav-link.active').dataset.page;
+                    switchPage(activePage);
+                });
+            } catch (error) {
+                console.error('Error loading stores:', error);
+            }
+        }
+
+        // Orders Page - WICHTIGE FUNKTION DIE GEFEHLT HAT
+        async function loadOrdersPage() {
+            try {
+                // Load summary data
+                const summaryResponse = await fetch(`${API_URL}/orders/summary${currentStore ? '?store_id=' + currentStore : ''}`);
+                const summary = await summaryResponse.json();
+                
+                document.getElementById('totalPizzas').textContent = summary.pizza_orders.toLocaleString('de-DE');
+                document.getElementById('totalOrders').textContent = summary.total_orders.toLocaleString('de-DE');
+                document.getElementById('avgOrderValue').textContent = summary.avg_order_value.toFixed(2).replace('.', ',') + '€';
+                
+                // Load charts
+                await loadOrdersByWeekdayChart();
+                await loadOrdersByHourChart();
+                await loadMonthlyOrdersChart();
+                
+                // Add weekday filter listener
+                document.getElementById('weekdayFilter').addEventListener('change', loadOrdersByHourChart);
+                
+                // Add year button listeners
+                document.querySelectorAll('.year-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.year-btn').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        loadMonthlyOrdersChart();
+                    });
+                });
+            } catch (error) {
+                console.error('Error loading orders page:', error);
+            }
+        }
+
+        async function loadOrdersByWeekdayChart() {
+            const response = await fetch(`${API_URL}/orders/by-weekday${currentStore ? '?store_id=' + currentStore : ''}`);
+            const data = await response.json();
+            
+            const ctx = document.getElementById('ordersByWeekdayChart').getContext('2d');
+            
+            if (charts.ordersByWeekday) {
+                charts.ordersByWeekday.destroy();
+            }
+            
+            charts.ordersByWeekday = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(d => d.weekday),
+                    datasets: [{
+                        label: 'Anzahl Bestellungen',
+                        data: data.map(d => d.orders),
+                        backgroundColor: '#5DADE2',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                display: false
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        async function loadOrdersByHourChart() {
+            const weekday = document.getElementById('weekdayFilter').value;
+            const response = await fetch(`${API_URL}/orders/by-hour${currentStore ? '?store_id=' + currentStore : ''}${weekday ? '&weekday=' + weekday : ''}`);
+            const data = await response.json();
+            
+            const ctx = document.getElementById('ordersByHourChart').getContext('2d');
+            
+            if (charts.ordersByHour) {
+                charts.ordersByHour.destroy();
+            }
+            
+            charts.ordersByHour = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d.hour + ':00'),
+                    datasets: [{
+                        label: weekday || 'Alle Tage',
+                        data: data.map(d => d.orders),
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        async function loadMonthlyOrdersChart() {
+            const activeYear = document.querySelector('.year-btn.active').dataset.year;
+            const response = await fetch(`${API_URL}/orders/monthly?year=${activeYear}${currentStore ? '&store_id=' + currentStore : ''}`);
+            const data = await response.json();
+            
+            const ctx = document.getElementById('monthlyOrdersChart').getContext('2d');
+            
+            if (charts.monthlyOrders) {
+                charts.monthlyOrders.destroy();
+            }
+            
+            charts.monthlyOrders = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d.month),
+                    datasets: [{
+                        label: activeYear,
+                        data: data.map(d => d.orders),
+                        borderColor: '#f39c12',
+                        backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                        tension: 0.3,
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        // Products Page
+        async function loadProductsPage() {
+            try {
+                // Load summary
+                const summaryResponse = await fetch(`${API_URL}/products/summary`);
+                const summary = await summaryResponse.json();
+                
+                document.querySelectorAll('.kpi-value-large')[0].textContent = summary.product_count;
+                document.querySelectorAll('.kpi-value-large')[1].textContent = summary.size_count;
+                document.querySelectorAll('.kpi-value-large')[2].textContent = summary.category_count;
+                document.querySelectorAll('.kpi-value-large')[3].textContent = summary.avg_sales_per_pizza.toFixed(1).replace('.', ',');
+                
+                // Load charts
+                await loadSalesByPizzaChart();
+                await loadSizeDistributionChart();
+                await loadCategoryDistributionChart();
+                await loadProductDetails();
+            } catch (error) {
+                console.error('Error loading products page:', error);
+            }
+        }
+
+        async function loadSalesByPizzaChart() {
+            const response = await fetch(`${API_URL}/products/sales-by-pizza`);
+            const data = await response.json();
+            
+            const ctx = document.getElementById('salesByPizzaChart').getContext('2d');
+            
+            if (charts.salesByPizza) {
+                charts.salesByPizza.destroy();
+            }
+            
+            charts.salesByPizza = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(d => d.name),
+                    datasets: [{
+                        data: data.map(d => d.sales),
+                        backgroundColor: [
+                            '#34495e', '#3498db', '#2ecc71', '#f39c12', 
+                            '#e74c3c', '#9b59b6', '#1abc9c', '#95a5a6', '#d35400'
+                        ]
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        async function loadSizeDistributionChart() {
+            const response = await fetch(`${API_URL}/products/by-size`);
+            const data = await response.json();
+            
+            const ctx = document.getElementById('sizeDistributionChart').getContext('2d');
+            
+            if (charts.sizeDistribution) {
+                charts.sizeDistribution.destroy();
+            }
+            
+            charts.sizeDistribution = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.map(d => d.size),
+                    datasets: [{
+                        data: data.map(d => d.count),
+                        backgroundColor: ['#34495e', '#7f8c8d', '#bdc3c7', '#ecf0f1']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+        }
+
+        async function loadCategoryDistributionChart() {
+            const response = await fetch(`${API_URL}/products/by-category`);
+            const data = await response.json();
+            
+            const ctx = document.getElementById('categoryDistributionChart').getContext('2d');
+            
+            if (charts.categoryDistribution) {
+                charts.categoryDistribution.destroy();
+            }
+            
+            charts.categoryDistribution = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.map(d => d.category),
+                    datasets: [{
+                        data: data.map(d => d.count),
+                        backgroundColor: ['#3498db', '#e74c3c', '#f39c12']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+        }
+
+        async function loadProductDetails() {
+            const response = await fetch(`${API_URL}/products/details`);
+            const products = await response.json();
+            
+            const tbody = document.getElementById('productTableBody');
+            tbody.innerHTML = '';
+            
+            products.forEach(product => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${product.name}</td>
+                    <td>${product.category}</td>
+                    <td>${product.ingredients || 'N/A'}</td>
+                    <td>${product.launch}</td>
+                    <td>${product.time_since_launch}</td>
+                `;
+            });
+        }
+
+        // Revenue Page
+        async function loadRevenuePage() {
+            try {
+                // Load summary
+                const summaryResponse = await fetch(`${API_URL}/revenue/summary${currentStore ? '?store_id=' + currentStore : ''}`);
+                const summary = await summaryResponse.json();
+                
+                document.getElementById('totalRevenue').textContent = summary.total_revenue.toLocaleString('de-DE', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }) + ' €';
+                document.getElementById('revenueGrowth').textContent = (summary.growth >= 0 ? '+' : '') + summary.growth.toFixed(1).replace('.', ',') + '%';
+                document.getElementById('revenuePerOrder').textContent = summary.revenue_per_order.toFixed(2).replace('.', ',') + ' €';
+                
+                // Load charts
+                await loadRevenueByWeekdayChart();
+                await loadYearlyRevenueChart();
+            } catch (error) {
+                console.error('Error loading revenue page:', error);
+            }
+        }
+
+        async function loadRevenueByWeekdayChart() {
+            const response = await fetch(`${API_URL}/revenue/by-weekday${currentStore ? '?store_id=' + currentStore : ''}`);
+            const data = await response.json();
+            
+            const ctx = document.getElementById('revenueByWeekdayChart').getContext('2d');
+            
+            if (charts.revenueByWeekday) {
+                charts.revenueByWeekday.destroy();
+            }
+            
+            charts.revenueByWeekday = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.map(d => d.weekday + ' (' + d.percentage + '%)'),
+                    datasets: [{
+                        data: data.map(d => d.revenue),
+                        backgroundColor: [
+                            '#e74c3c', '#f39c12', '#f1c40f', '#2ecc71', 
+                            '#3498db', '#9b59b6', '#34495e'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+        }
+
+        async function loadYearlyRevenueChart() {
+            const response = await fetch(`${API_URL}/revenue/yearly${currentStore ? '?store_id=' + currentStore : ''}`);
+            const data = await response.json();
+            
+            const ctx = document.getElementById('yearlyRevenueChart').getContext('2d');
+            
+            if (charts.yearlyRevenue) {
+                charts.yearlyRevenue.destroy();
+            }
+            
+            charts.yearlyRevenue = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(d => d.year),
+                    datasets: [{
+                        label: 'Jahresumsatz',
+                        data: data.map(d => d.revenue),
+                        backgroundColor: '#34495e',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString('de-DE') + ' €';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+    </script>

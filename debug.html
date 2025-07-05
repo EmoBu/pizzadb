@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pizza Dashboard - Debug</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .debug-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        canvas {
+            max-height: 300px;
+            margin: 20px 0;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🍕 Pizza Dashboard - Debug Mode</h1>
+    
+    <div class="debug-section">
+        <h2>1. System-Check</h2>
+        <div id="systemCheck"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>2. API-Test</h2>
+        <div id="apiTest"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>3. Daten-Test</h2>
+        <div id="dataTest"></div>
+        <pre id="dataDisplay"></pre>
+    </div>
+    
+    <div class="debug-section">
+        <h2>4. Chart-Test</h2>
+        <div id="chartTest"></div>
+        <canvas id="testChart" width="400" height="200"></canvas>
+    </div>
+    
+    <div class="debug-section">
+        <h2>5. Echte Daten Chart</h2>
+        <canvas id="realDataChart" width="400" height="200"></canvas>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        
+        // Hilfsfunktion für Status-Anzeige
+        function addStatus(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const status = document.createElement('div');
+            status.className = `status ${type}`;
+            status.textContent = message;
+            container.appendChild(status);
+        }
+        
+        // 1. System-Check
+        function systemCheck() {
+            // Chart.js Check
+            if (typeof Chart !== 'undefined') {
+                addStatus('systemCheck', '✓ Chart.js ist geladen', 'success');
+                addStatus('systemCheck', `Chart.js Version: ${Chart.version}`, 'info');
+            } else {
+                addStatus('systemCheck', '✗ Chart.js ist NICHT geladen!', 'error');
+            }
+            
+            // Canvas Check
+            const canvas = document.getElementById('testChart');
+            if (canvas) {
+                addStatus('systemCheck', '✓ Canvas-Element gefunden', 'success');
+            } else {
+                addStatus('systemCheck', '✗ Canvas-Element nicht gefunden!', 'error');
+            }
+            
+            // Fetch API Check
+            if (typeof fetch !== 'undefined') {
+                addStatus('systemCheck', '✓ Fetch API verfügbar', 'success');
+            } else {
+                addStatus('systemCheck', '✗ Fetch API nicht verfügbar!', 'error');
+            }
+        }
+        
+        // 2. API-Test
+        async function apiTest() {
+            addStatus('apiTest', 'Teste API-Verbindung...', 'info');
+            
+            try {
+                const response = await fetch(`${API_URL}/test`);
+                if (response.ok) {
+                    const data = await response.json();
+                    addStatus('apiTest', `✓ API erreichbar: ${JSON.stringify(data)}`, 'success');
+                } else {
+                    addStatus('apiTest', `✗ API-Fehler: Status ${response.status}`, 'error');
+                }
+            } catch (error) {
+                addStatus('apiTest', `✗ Verbindungsfehler: ${error.message}`, 'error');
+                addStatus('apiTest', 'Stellen Sie sicher, dass das Backend auf Port 5000 läuft!', 'error');
+            }
+        }
+        
+        // 3. Daten-Test
+        async function dataTest() {
+            addStatus('dataTest', 'Lade Bestelldaten...', 'info');
+            
+            try {
+                const response = await fetch(`${API_URL}/orders/by-weekday`);
+                if (response.ok) {
+                    const data = await response.json();
+                    addStatus('dataTest', `✓ Daten erhalten: ${data.length} Einträge`, 'success');
+                    document.getElementById('dataDisplay').textContent = JSON.stringify(data, null, 2);
+                    return data;
+                } else {
+                    addStatus('dataTest', `✗ Fehler beim Datenabruf: Status ${response.status}`, 'error');
+                }
+            } catch (error) {
+                addStatus('dataTest', `✗ Fehler: ${error.message}`, 'error');
+            }
+            return null;
+        }
+        
+        // 4. Chart-Test mit statischen Daten
+        function chartTest() {
+            addStatus('chartTest', 'Erstelle Test-Chart mit statischen Daten...', 'info');
+            
+            try {
+                const ctx = document.getElementById('testChart').getContext('2d');
+                const chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag'],
+                        datasets: [{
+                            label: 'Test-Bestellungen',
+                            data: [12, 19, 3, 5, 2],
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.2)',
+                                'rgba(54, 162, 235, 0.2)',
+                                'rgba(255, 206, 86, 0.2)',
+                                'rgba(75, 192, 192, 0.2)',
+                                'rgba(153, 102, 255, 0.2)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+                addStatus('chartTest', '✓ Test-Chart erfolgreich erstellt', 'success');
+            } catch (error) {
+                addStatus('chartTest', `✗ Fehler beim Chart erstellen: ${error.message}`, 'error');
+            }
+        }
+        
+        // 5. Chart mit echten Daten
+        async function realDataChart() {
+            const data = await dataTest();
+            if (data) {
+                try {
+                    const ctx = document.getElementById('realDataChart').getContext('2d');
+                    const chart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.map(d => d.weekday),
+                            datasets: [{
+                                label: 'Bestellungen',
+                                data: data.map(d => d.orders),
+                                backgroundColor: '#5DADE2',
+                                borderColor: '#3498db',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                    addStatus('dataTest', '✓ Chart mit echten Daten erstellt', 'success');
+                } catch (error) {
+                    addStatus('dataTest', `✗ Fehler beim Chart mit echten Daten: ${error.message}`, 'error');
+                }
+            }
+        }
+        
+        // Alle Tests ausführen
+        window.addEventListener('DOMContentLoaded', async () => {
+            console.log('Debug-Modus gestartet...');
+            
+            systemCheck();
+            await apiTest();
+            chartTest();
+            await realDataChart();
+            
+            console.log('Alle Tests abgeschlossen. Prüfen Sie die Ergebnisse oben.');
+        });
+    </script>
+</body>
+</html>
