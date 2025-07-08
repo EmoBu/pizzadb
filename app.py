@@ -5,6 +5,18 @@ from datetime import datetime
 import json
 import traceback
 
+
+import os
+import urllib.request
+
+DB_PATH = "pizza.db"
+DROPBOX_URL = "https://www.dropbox.com/scl/fi/36583kaen7ju839ks04h9/pizza.db?rlkey=k7az2yvi2mzimvopzn9otxahg&st=urgsyl0z&dl=1"
+
+if not os.path.exists(DB_PATH):
+    print("Lade pizza.db von Dropbox...")
+    urllib.request.urlretrieve(DROPBOX_URL, DB_PATH)
+    print("Download abgeschlossen.")
+
 app = Flask(__name__)
 # Erweiterte CORS-Konfiguration für alle Origins
 CORS(app, origins="*", allow_headers="*", methods=["GET", "POST", "OPTIONS"])
