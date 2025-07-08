@@ -1,11 +1,10 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from flask import Flask, render_template
 import sqlite3
 from datetime import datetime
 import json
 import traceback
-
-
 import os
 import urllib.request
 
@@ -20,6 +19,10 @@ if not os.path.exists(DB_PATH):
 app = Flask(__name__)
 # Erweiterte CORS-Konfiguration für alle Origins
 CORS(app, origins="*", allow_headers="*", methods=["GET", "POST", "OPTIONS"])
+# Startseite-Route einfügen
+@app.route("/")
+def index():
+    return render_template("index.html")
 
 # Datenbankverbindung herstellen
 def get_db_connection():
